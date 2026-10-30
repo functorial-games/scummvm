@@ -35,7 +35,9 @@
 namespace Sci {
 
 OptionsWidget::OptionsWidget(GuiObject *boss, const Common::String &name, const Common::String &domain) :
-		OptionsContainerWidget(boss, name, "SciGameOptionsDialog", domain) {
+		OptionsContainerWidget(boss, name, "SciGameOptionsDialog", domain),
+		_showParserSuggestions(ConfMan.get("gameid", domain) == "qfg1" ||
+			ConfMan.get("gameid", domain) == "qfg2") {
 	_guiOptions = ConfMan.get("guioptions", domain);
 
 	for (const ADExtraGuiOptionsMap *entry = optionsList; entry->guioFlag; ++entry)
@@ -52,6 +54,12 @@ OptionsWidget::OptionsWidget(GuiObject *boss, const Common::String &name, const 
 			for (uint i = 0; entry->items[i].label; ++i)
 				_popUps[entry->configOption]->appendEntry(_(entry->items[i].label), entry->items[i].configValue);
 		}
+
+	if (_showParserSuggestions)
+		_checkboxes["sci_parser_typo_suggestions"] = new GUI::CheckboxWidget(widgetsBoss(),
+			_dialogLayout + ".sci_parser_typo_suggestions",
+			_("Suggest corrections for unrecognized words"),
+			_("Suggest English vocabulary words, without executing corrected commands"));
 }
 
 void OptionsWidget::defineLayout(GUI::ThemeEval &layouts, const Common::String &layoutName, const Common::String &overlayedLayout) const {
@@ -67,6 +75,9 @@ void OptionsWidget::defineLayout(GUI::ThemeEval &layouts, const Common::String &
 		layouts.addWidget(entry->configOption, "PopUp").closeLayout();
 	}
 
+	if (_showParserSuggestions)
+		layouts.addWidget("sci_parser_typo_suggestions", "Checkbox");
+
 	layouts.closeLayout().closeDialog();
 }
 
@@ -78,6 +89,9 @@ void OptionsWidget::load() {
 	for (const PopUpOptionsMap *entry = popUpOptionsList; entry->guioFlag; ++entry)
 		if (checkGameGUIOption(entry->guioFlag, _guiOptions))
 			_popUps[entry->configOption]->setSelectedTag(ConfMan.getInt(entry->configOption, _domain));
+
+	if (_showParserSuggestions)
+		_checkboxes["sci_parser_typo_suggestions"]->setState(ConfMan.getBool("sci_parser_typo_suggestions", _domain));
 
 	// If the deprecated native_fb01 option is set, use it to set midi_mode
 	if (ConfMan.hasKey("native_fb01", _domain) && ConfMan.getBool("native_fb01", _domain))
@@ -92,6 +106,9 @@ bool OptionsWidget::save() {
 	for (const PopUpOptionsMap *entry = popUpOptionsList; entry->guioFlag; ++entry)
 		if (checkGameGUIOption(entry->guioFlag, _guiOptions))
 			ConfMan.setInt(entry->configOption, _popUps[entry->configOption]->getSelectedTag(), _domain);
+
+	if (_showParserSuggestions)
+		ConfMan.setBool("sci_parser_typo_suggestions", _checkboxes["sci_parser_typo_suggestions"]->getState(), _domain);
 
 	// Remove deprecated option
 	ConfMan.removeKey("native_fb01", _domain);

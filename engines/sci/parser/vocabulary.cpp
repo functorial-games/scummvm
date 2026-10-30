@@ -22,6 +22,7 @@
 // Main vocabulary support functions and word lookup
 
 #include "sci/parser/vocabulary.h"
+#include "sci/parser/typo_suggestions.h"
 #include "sci/resource/resource.h"
 #include "sci/engine/state.h"
 #include "sci/engine/kernel.h"
@@ -526,6 +527,17 @@ void Vocabulary::lookupWord(ResultWordList& retval, const char *word, int word_l
 			retval.push_back(tmp);
 		}
 	}
+}
+
+void Vocabulary::suggestWordCorrections(Common::Array<Common::String> &suggestions, const char *word) const {
+	suggestions.clear();
+	TypoSuggestionCollector collector(word);
+	for (WordMap::const_iterator i = _parserWords.begin(); i != _parserWords.end(); ++i)
+		collector.consider(i->_key);
+
+	const Common::Array<TypoSuggestion> &ranked = collector.suggestions();
+	for (uint i = 0; i < ranked.size(); ++i)
+		suggestions.push_back(ranked[i].word);
 }
 
 void Vocabulary::lookupWordPrefix(ResultWordListList &parent_retval, ResultWordList &retval, const char *word, int word_len) {
