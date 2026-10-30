@@ -21,6 +21,10 @@
 
 /* String and parser handling */
 
+#include "common/config-manager.h"
+#include "common/translation.h"
+#include "gui/message.h"
+
 #include "sci/resource/resource.h"
 #include "sci/engine/state.h"
 #include "sci/engine/selector.h"
@@ -145,11 +149,32 @@ reg_t kParse(EngineState *s, int argc, reg_t *argv) {
 		writeSelectorValue(segMan, event, SELECTOR(claimed), 1);
 
 		if (error) {
+			Common::Array<Common::String> suggestions;
+			if (ConfMan.getBool("sci_parser_typo_suggestions") &&
+				g_sci->getLanguage() == Common::EN_ANY &&
+				(g_sci->getGameId() == GID_QFG1 || g_sci->getGameId() == GID_QFG2))
+				voc->suggestWordCorrections(suggestions, error);
+
 			s->_segMan->strcpy_(s->_segMan->getParserPtr(), error);
 			debugC(kDebugLevelParser, "Word unknown: %s", error);
 			/* Issue warning: */
 
 			invokeSelector(s, g_sci->getGameObject(), SELECTOR(wordFail), argc, argv, 2, params);
+
+			if (!suggestions.empty()) {
+				Common::U32String message = _("Unrecognized word: ");
+				message += Common::U32String(error);
+				message += _("\nPossible corrections: ");
+				for (uint i = 0; i < suggestions.size(); ++i) {
+					if (i)
+						message += Common::U32String(", ");
+					message += Common::U32String(suggestions[i]);
+				}
+				message += _("\nRetype your command to try again.");
+				GUI::MessageDialog dialog(message);
+				dialog.runModal();
+			}
+
 			free(error);
 			return make_reg(0, 1); /* Tell them that it didn't work */
 		}

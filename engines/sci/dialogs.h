@@ -58,6 +58,7 @@ private:
 	// OptionsContainerWidget API
 	void defineLayout(GUI::ThemeEval &layouts, const Common::String &layoutName, const Common::String &overlayedLayout) const override;
 
+	bool _showParserSuggestions;
 	Common::String _guiOptions;
 	Common::HashMap<Common::String, GUI::CheckboxWidget *> _checkboxes;
 	Common::HashMap<Common::String, GUI::PopUpWidget *> _popUps;

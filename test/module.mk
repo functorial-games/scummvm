@@ -11,6 +11,8 @@ TESTS        := $(srcdir)/test/common/*.h \
 	$(srcdir)/test/audio/*.h \
 	$(srcdir)/test/math/*.h \
 	$(srcdir)/test/image/*.h
+TESTS += $(srcdir)/test/engines/sci/*.h
+
 TEST_LIBS    :=
 
 ifdef POSIX

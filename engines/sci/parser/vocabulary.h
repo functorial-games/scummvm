@@ -209,6 +209,12 @@ public:
 	void lookupWord(ResultWordList &retval, const char *word, int word_len);
 
 	/**
+	 * Suggest existing dictionary words for a word which was not recognized.
+	 * These suggestions are advisory; they are never parsed automatically.
+	 */
+	void suggestWordCorrections(Common::Array<Common::String> &suggestions, const char *word) const;
+
+	/**
 	 * Looks up a single word in the words list, taking into account suffixes, and updating parent_retval if a matching prefix is found
 	 * Note: there is no equivalent in Sierra SCI, added to support specific languages translations
 	 * For other languages, it does nothing
